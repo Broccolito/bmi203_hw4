@@ -42,3 +42,32 @@ class Graph:
 
         """
         self.mst = None
+
+        num_vertices = self.adj_mat.shape[0]
+        visited = [False] * num_vertices
+        self.mst = np.zeros_like(self.adj_mat)
+
+        # Priority queue of edges (weight, vertex1, vertex2), starting with an arbitrary vertex (here, vertex 0)
+        edges = [(0, 0, 0)]  # (cost, from, to)
+        
+        while edges:
+            cost, from_vertex, to_vertex = heapq.heappop(edges)
+            
+            # If the to_vertex is already visited, skip this edge
+            if visited[to_vertex]:
+                continue
+            
+            # Mark the vertex as visited
+            visited[to_vertex] = True
+            
+            # If this edge connects two vertices (not starting vertex), add it to the MST
+            if from_vertex != to_vertex:
+                self.mst[from_vertex, to_vertex] = cost
+                self.mst[to_vertex, from_vertex] = cost  # Because the graph is undirected
+            
+            # Update the queue with the edges connected to the newly added vertex
+            for next_vertex in range(num_vertices):
+                if not visited[next_vertex] and self.adj_mat[to_vertex, next_vertex] > 0:
+                    heapq.heappush(edges, (self.adj_mat[to_vertex, next_vertex], to_vertex, next_vertex))
+
+
