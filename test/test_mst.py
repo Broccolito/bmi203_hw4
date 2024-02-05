@@ -4,6 +4,32 @@ from mst import Graph
 from sklearn.metrics import pairwise_distances
 
 
+def dfs(mst, visited, vertex):
+    """
+    Depth First Search to mark all vertices reachable from a given starting vertex.
+
+    Args:
+    - mst: The MST adjacency matrix
+    - visited: List to keep track of visited vertices
+    - vertex: The current vertex to explore
+    """
+    visited[vertex] = True
+    for i, edge in enumerate(mst[vertex]):
+        if edge > 0 and not visited[i]:
+            dfs(mst, visited, i)
+
+def check_connectedness(mst, num_vertices):
+    """
+    Checks if the MST is connected by ensuring there's a path from any vertex to every other vertex.
+
+    Args:
+    - mst: The MST adjacency matrix
+    - num_vertices: Number of vertices in the graph
+    """
+    visited = [False] * num_vertices
+    dfs(mst, visited, 0)  # Start DFS from vertex 0
+    assert all(visited), 'MST is not connected'
+
 def check_mst(adj_mat: np.ndarray, 
               mst: np.ndarray, 
               expected_weight: int, 
@@ -44,12 +70,16 @@ def check_mst(adj_mat: np.ndarray,
     num_vertices = adj_mat.shape[0]
     assert num_edges == num_vertices - 1, 'Proposed MST does not have N-1 edges'
 
-    # Check for connectedness by ensuring there's a path between any two vertices
-    # Simple check using Floyd-Warshall algorithm or DFS from each vertex could be applied here
-    # For simplicity, we check the MST matrix should not have any row or column full of zeros (excluding diagonal)
-    # assert not np.any(np.all(mst == 0, axis=0)[np.arange(num_vertices) != np.arange(num_vertices)[:, None]]), 'MST is not connected'
+    # Check for connectedness
+    check_connectedness(mst, num_vertices)
 
-    # # Ensure all edges in the MST exist in the original graph and their weights are correct
+    # Ensure all edges in the MST exist in the original graph and their weights are correct
+    # for i in range(mst.shape[0]):
+    #     for j in range(i + 1, mst.shape[1]):
+    #         if mst[i, j] > 0:  # If there's an edge in the MST
+    #             assert adj_mat[i, j] == mst[i, j], 'Edge weight in MST does not match the original graph'
+
+    # Ensure all edges in the MST exist in the original graph and their weights are correct
     # for i in range(mst.shape[0]):
     #     for j in range(i + 1, mst.shape[1]):
     #         if mst[i, j] > 0:  # If there's an edge in the MST
