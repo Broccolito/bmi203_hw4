@@ -3,7 +3,6 @@ import numpy as np
 from mst import Graph
 from sklearn.metrics import pairwise_distances
 
-
 def dfs(mst, visited, vertex):
     """
     Depth First Search to mark all vertices reachable from a given starting vertex.
@@ -29,6 +28,22 @@ def check_connectedness(mst, num_vertices):
     visited = [False] * num_vertices
     dfs(mst, visited, 0)  # Start DFS from vertex 0
     assert all(visited), 'MST is not connected'
+
+def check_mst_edges_exist_and_correct(adj_mat: np.ndarray, mst: np.ndarray, allowed_error: float = 0.0001):
+    """
+    Checks that all edges in the MST exist in the original graph and their weights are correct.
+    
+    Args:
+    - adj_mat: Adjacency matrix of the full graph.
+    - mst: Adjacency matrix of the proposed minimum spanning tree.
+    """
+    num_vertices = mst.shape[0]
+    for i in range(num_vertices):
+        for j in range(i + 1, num_vertices):  # Ensure to check only one side of the symmetric matrix
+            if mst[i, j] > 0:  # If there's an edge in the MST
+                assert abs(adj_mat[i, j] - mst[i, j]) < allowed_error, f'Edge weight in MST does not match the original graph at edge {i}-{j}'
+                assert abs(adj_mat[j, i] - mst[j, i]) < allowed_error, f'Edge weight in MST does not match the original graph at edge {j}-{i} (symmetric check)'
+
 
 def check_mst(adj_mat: np.ndarray, 
               mst: np.ndarray, 
@@ -74,17 +89,7 @@ def check_mst(adj_mat: np.ndarray,
     check_connectedness(mst, num_vertices)
 
     # Ensure all edges in the MST exist in the original graph and their weights are correct
-    # for i in range(mst.shape[0]):
-    #     for j in range(i + 1, mst.shape[1]):
-    #         if mst[i, j] > 0:  # If there's an edge in the MST
-    #             assert adj_mat[i, j] == mst[i, j], 'Edge weight in MST does not match the original graph'
-
-    # Ensure all edges in the MST exist in the original graph and their weights are correct
-    # for i in range(mst.shape[0]):
-    #     for j in range(i + 1, mst.shape[1]):
-    #         if mst[i, j] > 0:  # If there's an edge in the MST
-    #             assert adj_mat[i, j] == mst[i, j], 'Edge weight in MST does not match the original graph'
-    
+    check_mst_edges_exist_and_correct(adj_mat, mst, allowed_error = allowed_error)
 
 def test_mst_small():
     """
@@ -129,8 +134,32 @@ def test_mst_student():
         [0, 3, 5, 0]
     ])
     expected_weight = 6  # Known weight of MST for this graph
+    # Initialize the Graph with the adjacency matrix and construct the MST
     g = Graph(adj_mat)
     g.construct_mst()
     check_mst(g.adj_mat, g.mst, expected_weight)
 
     pass
+
+def test_mst_student2():
+    """
+    Unit test for the construction of a minimum spanning tree on a custom graph.
+    The graph is designed such that the MST's expected weight is known.
+    """
+    # Adjacency matrix for the graph
+    adj_mat = np.array([
+        [0, 2, 0, 0, 1],  # Connections for vertex 0
+        [2, 0, 3, 2, 0],  # Connections for vertex 1
+        [0, 3, 0, 4, 0],  # Connections for vertex 2
+        [0, 2, 4, 0, 5],  # Connections for vertex 3
+        [1, 0, 0, 5, 0]   # Connections for vertex 4
+    ])
+
+    expected_weight = 8  # Known weight of MST for this graph
+    # Initialize the Graph with the adjacency matrix and construct the MST
+    g = Graph(adj_mat)
+    g.construct_mst()
+
+    # Check the MST
+    check_mst(g.adj_mat, g.mst, expected_weight)
+
