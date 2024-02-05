@@ -35,6 +35,26 @@ def check_mst(adj_mat: np.ndarray,
             total += mst[i, j]
     assert approx_equal(total, expected_weight), 'Proposed MST has incorrect expected weight'
 
+    # Check for total weight
+    total_weight = np.sum(mst) / 2  # Divide by 2 because it's an undirected graph and edges are counted twice
+    assert approx_equal(total_weight, expected_weight), f'Proposed MST weight differs from expected by more than {allowed_error}'
+
+    # Check the number of edges (N-1 for N vertices)
+    num_edges = np.count_nonzero(mst) / 2  # Divide by 2 to adjust for symmetric matrix counting edges twice
+    num_vertices = adj_mat.shape[0]
+    assert num_edges == num_vertices - 1, 'Proposed MST does not have N-1 edges'
+
+    # Check for connectedness by ensuring there's a path between any two vertices
+    # Simple check using Floyd-Warshall algorithm or DFS from each vertex could be applied here
+    # For simplicity, we check the MST matrix should not have any row or column full of zeros (excluding diagonal)
+    # assert not np.any(np.all(mst == 0, axis=0)[np.arange(num_vertices) != np.arange(num_vertices)[:, None]]), 'MST is not connected'
+
+    # # Ensure all edges in the MST exist in the original graph and their weights are correct
+    # for i in range(mst.shape[0]):
+    #     for j in range(i + 1, mst.shape[1]):
+    #         if mst[i, j] > 0:  # If there's an edge in the MST
+    #             assert adj_mat[i, j] == mst[i, j], 'Edge weight in MST does not match the original graph'
+    
 
 def test_mst_small():
     """
@@ -71,4 +91,16 @@ def test_mst_student():
     TODO: Write at least one unit test for MST construction.
     
     """
+    # Create a simple graph with 4 vertices
+    adj_mat = np.array([
+        [0, 1, 4, 0],
+        [1, 0, 2, 3],
+        [4, 2, 0, 5],
+        [0, 3, 5, 0]
+    ])
+    expected_weight = 6  # Known weight of MST for this graph
+    g = Graph(adj_mat)
+    g.construct_mst()
+    check_mst(g.adj_mat, g.mst, expected_weight)
+
     pass
